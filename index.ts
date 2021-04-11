@@ -4,7 +4,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 export type ClientLike = {
-  getSecret(name: string, options: { version?: string }): Promise<{ value: string }>;
+  getSecret(name: string, options: { version?: string }): Promise<{ value?: string }>;
 };
 
 export interface IKeyvaultLoaderOptions {
