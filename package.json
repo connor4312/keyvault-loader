@@ -1,0 +1,41 @@
+{
+  "name": "@c4312/keyvault-loader",
+  "version": "0.1.0",
+  "description": "Helper to load keyvault values from a config, optionally caching them locally",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "tsc && node --experimental-vm-modules ./node_modules/jest/bin/jest",
+    "watch": "concurrently \"node --experimental-vm-modules ./node_modules/jest/bin/jest --watchAll\" \"tsc --watch\"",
+    "prepack": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/connor4312/keyvault-loader.git"
+  },
+  "keywords": [
+    "azure",
+    "keyvault",
+    "secret",
+    "config"
+  ],
+  "bugs": {
+    "url": "https://github.com/connor4312/keyvault-loader/issues"
+  },
+  "homepage": "https://github.com/connor4312/keyvault-loader#readme",
+  "author": "Connor Peet <connor@peet.io>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^26.0.22",
+    "@types/node": "^14.14.37",
+    "concurrently": "^6.0.1",
+    "jest": "^26.6.3",
+    "prettier": "^2.2.1",
+    "typescript": "^4.2.4"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "arrowParens": "avoid",
+    "singleQuote": true
+  }
+}
