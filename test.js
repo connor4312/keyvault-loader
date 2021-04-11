@@ -17,14 +17,15 @@ test('reads without a cache', async () => {
   const obj = { x: 'https://myvault.vault.azure.net/secrets/foo/baadf00d' };
   let calls = 0;
   const options = {
-    client: {
+    client: url => ({
       getSecret(name, options) {
         calls++;
+        expect(url).toBe('https://myvault.vault.azure.net');
         expect(name).toBe('foo');
         expect(options.version).toBe('baadf00d');
         return Promise.resolve({ value: 'secretValue' });
       },
-    },
+    }),
   };
 
   expect(await resolveConfig(obj, options)).toEqual({ x: 'secretValue' });
@@ -35,13 +36,13 @@ test('reads without a cache', async () => {
 test('allows version to be optional', async () => {
   const obj = { x: 'https://myvault.vault.azure.net/secrets/foo' };
   const options = {
-    client: {
+    client: () => ({
       getSecret(name, options) {
         expect(name).toBe('foo');
         expect(options.version).toBe(undefined);
         return Promise.resolve({ value: 'secretValue' });
       },
-    },
+    }),
   };
 
   expect(await resolveConfig(obj, options)).toEqual({ x: 'secretValue' });
@@ -58,13 +59,13 @@ test('does not interfere with other object properties', async () => {
   const cloned = JSON.parse(JSON.stringify(obj));
 
   const options = {
-    client: {
+    client: () => ({
       getSecret(name, options) {
         expect(name).toBe('foo');
         expect(options.version).toBe(undefined);
         return Promise.resolve({ value: 'secretValue' });
       },
-    },
+    }),
   };
 
   expect(await resolveConfig(obj, options)).toEqual({
@@ -83,14 +84,14 @@ test('caches', async () => {
   const options = {
     cacheDir,
     cache: true,
-    client: {
+    client: () => ({
       getSecret(name, options) {
         calls++;
         expect(name).toBe('foo');
         expect(options.version).toBe('baadf00d');
         return Promise.resolve({ value: 'secretValue' });
       },
-    },
+    }),
   };
 
   expect(await resolveConfig(obj, options)).toEqual({ x: 'secretValue' });

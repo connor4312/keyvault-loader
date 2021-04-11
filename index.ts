@@ -3,11 +3,15 @@ import { promises as fs } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
+export type ClientLike = {
+  getSecret(name: string, options: { version?: string }): Promise<{ value: string }>;
+};
+
 export interface IKeyvaultLoaderOptions {
   /**
    * Secret client to use. A subset of the `SecretClient` from `@azure/keyvault-secrets`
    */
-  client: { getSecret(name: string, options: { version?: string }): Promise<{ value: string }> };
+  client(kvBaseUrl: string): ClientLike | Promise<ClientLike>;
 
   /**
    * Whether the secret should be cached on-disk. Useful during development.
@@ -58,7 +62,8 @@ const getSecret = async (
 
   let value: string;
   try {
-    const res = await options.client.getSecret(secret, { version });
+    const client = await options.client(baseUrl);
+    const res = await client.getSecret(secret, { version });
     if (!res.value) {
       return '';
     }

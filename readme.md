@@ -14,9 +14,11 @@ import { AzureCliCredential } from '@azure/identity';
 import { SecretClient } from '@azure/keyvault-secrets';
 import resolveConfig from '@c4312/keyvault-loader';
 
-const secretClient = new SecretClient(keyVaultBaseUrl, new AzureCliCredential());
 const myConfig = { fooSecret: 'https://myvault.vault.azure.net/secrets/foo' };}
-const resolved = await resolveConfig(myConfig, { client: secretClient, cache: true });
+const resolved = await resolveConfig(myConfig, {
+  client: keyvaultUrl => new SecretClient(keyvaultUrl, new AzureCliCredential()),
+  cache: true
+});
 
 console.log(resolved); // { fooSecret: 'mySecretValue' }
 ```
