@@ -1,6 +1,6 @@
 {
   "name": "@c4312/keyvault-loader",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Helper to load keyvault values from a config, optionally caching them locally",
   "main": "index.js",
   "type": "module",
