@@ -1,4 +1,4 @@
-import resolveConfig from '.';
+import resolveConfig, { resolveConfigInPlace } from '.';
 import { promises as fs } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -76,6 +76,35 @@ test('does not interfere with other object properties', async () => {
     f: { x: 'secretValue' },
   });
   expect(obj).toEqual(cloned);
+});
+test('resolves in place', async () => {
+  const obj = {
+    a: 1,
+    b: { c: 2 },
+    e: null,
+    d: undefined,
+    f: { x: 'https://myvault.vault.azure.net/secrets/foo' },
+  };
+
+  const options = {
+    client: () => ({
+      getSecret(name, options) {
+        expect(name).toBe('foo');
+        expect(options.version).toBe(undefined);
+        return Promise.resolve({ value: 'secretValue' });
+      },
+    }),
+  };
+
+  await resolveConfigInPlace(obj, options);
+
+  expect(obj).toEqual({
+    a: 1,
+    b: { c: 2 },
+    e: null,
+    d: undefined,
+    f: { x: 'secretValue' },
+  });
 });
 
 test('caches', async () => {

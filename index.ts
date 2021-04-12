@@ -35,6 +35,16 @@ export default function resolveConfig<T extends object>(
   return resolveKeyVaultValues(options, config as SomeObject) as Promise<T>;
 }
 
+/**
+ * Prepares the config for usage, revealing any contained keyvault secrets.
+ */
+export function resolveConfigInPlace(
+  config: SomeObject,
+  options: IKeyvaultLoaderOptions
+): Promise<void> {
+  return resolveKeyVaultValuesInPlace(options, config as SomeObject);
+}
+
 // matching a url, 1. vault base url, 2. secret name, 3. (optional) secret version
 const keyVaultRe = /^(https:\/\/[^.]+\.vault\.azure\.net)\/secrets\/([^\/]+?)(?:\/(.*?))?$/;
 
@@ -84,22 +94,23 @@ const getSecret = async (
 
 type SomeObject = Record<keyof any, unknown>;
 
-async function resolveKeyVaultValues(
+async function mapValues(
   options: IKeyvaultLoaderOptions,
-  target: SomeObject
+  target: SomeObject,
+  handler: (obj: SomeObject, key: string, match: RegExpExecArray) => Promise<string>
 ): Promise<SomeObject> {
   const output: SomeObject = {};
   for (const key of Object.keys(target)) {
     const value = target[key];
     if (typeof value === 'object') {
       if (!!value) {
-        output[key] = await resolveKeyVaultValues(options, value as SomeObject);
+        output[key] = await mapValues(options, value as SomeObject, handler);
         continue;
       }
     } else if (typeof value === 'string') {
       const match = keyVaultRe.exec(value);
       if (match) {
-        output[key] = await getSecret(options, match);
+        output[key] = await handler(target, key, match);
         continue;
       }
     }
@@ -108,4 +119,22 @@ async function resolveKeyVaultValues(
   }
 
   return output;
+}
+
+async function resolveKeyVaultValues(
+  options: IKeyvaultLoaderOptions,
+  target: SomeObject
+): Promise<SomeObject> {
+  return mapValues(options, target, (_obj, _key, match) => getSecret(options, match));
+}
+
+async function resolveKeyVaultValuesInPlace(
+  options: IKeyvaultLoaderOptions,
+  target: SomeObject
+): Promise<void> {
+  await mapValues(
+    options,
+    target,
+    async (obj, key, match) => (obj[key] = await getSecret(options, match))
+  );
 }
